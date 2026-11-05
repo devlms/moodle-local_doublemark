@@ -1,0 +1,116 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_doublemark/overview
+
+    The lead's view: counts per stage, the release button and every student with both marks.
+
+    Context variables required for this template:
+    * tiles - list of {name, label, count, url, active}
+    * rows - list of {userid, name, picture, marker1, marker2, mark1, mark2, gap, wide, agreed, status, statuslabel, badge,
+      needsyou, canagree, agreeurl, gradedoutside}
+    * hasrows, emptymessage, rulesummary, releasecount, canrelease, releaselabel, releaseurl, cmid, sesskey
+
+    Example context (json):
+    {
+        "tiles": [{"name": "reconcile", "label": "Marks differ", "count": 1, "url": "#", "active": false}],
+        "rows": [{"userid": 5, "name": "Ines Moreau", "picture": "", "marker1": "Priya Shah", "marker2": "Tom Becker",
+            "mark1": "52", "mark2": "74", "gap": "22", "wide": true, "agreed": "", "status": "reconcile",
+            "statuslabel": "Marks differ", "badge": "badge bg-warning text-dark", "needsyou": true, "canagree": true,
+            "agreeurl": "#", "gradedoutside": false}],
+        "hasrows": true, "emptymessage": "", "rulesummary": "Marks within 5 points agree on the average of the two marks.",
+        "releasecount": 4, "canrelease": true, "releaselabel": "Release 4 agreed marks to the assignment",
+        "releaseurl": "#", "cmid": 7, "sesskey": "x"
+    }
+}}
+<div class="local-doublemark" data-region="overview">
+    <p class="local-doublemark-rule">{{rulesummary}}</p>
+    <nav aria-label="{{#str}}filter, local_doublemark{{/str}}">
+        <ul class="local-doublemark-tiles">
+            {{#tiles}}
+            <li>
+                <a href="{{url}}" class="local-doublemark-tile is-{{name}}{{#active}} is-active{{/active}}"
+                   {{#active}}aria-current="true"{{/active}} data-group="{{name}}">
+                    <span class="local-doublemark-tile-count">{{count}}</span>
+                    <span class="local-doublemark-tile-label">{{label}}</span>
+                </a>
+            </li>
+            {{/tiles}}
+        </ul>
+    </nav>
+    {{#canrelease}}
+    <form method="post" action="{{releaseurl}}" class="local-doublemark-release">
+        <input type="hidden" name="cmid" value="{{cmid}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="release">
+        <p>{{#str}}releasehelp, local_doublemark{{/str}}</p>
+        <button type="submit" class="btn btn-primary" data-testid="release">{{releaselabel}}</button>
+    </form>
+    {{/canrelease}}
+    {{#hasrows}}
+    <table class="table generaltable local-doublemark-table">
+        <thead>
+            <tr>
+                <th scope="col">{{#str}}student, local_doublemark{{/str}}</th>
+                <th scope="col">{{#str}}firstmarker, local_doublemark{{/str}}</th>
+                <th scope="col">{{#str}}secondmarker, local_doublemark{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}gap, local_doublemark{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}agreed, local_doublemark{{/str}}</th>
+                <th scope="col">{{#str}}status, local_doublemark{{/str}}</th>
+                <th scope="col"><span class="local-doublemark-sr">{{#str}}actions, local_doublemark{{/str}}</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#rows}}
+            <tr data-userid="{{userid}}" data-status="{{status}}"{{#needsyou}} class="is-needsyou"{{/needsyou}}>
+                <th scope="row" class="local-doublemark-student">
+                    {{#picture}}<span aria-hidden="true">{{{picture}}}</span>{{/picture}}
+                    <span>{{name}}</span>
+                    {{#gradedoutside}}
+                    <span class="local-doublemark-flag" title="{{#str}}gradedoutside, local_doublemark{{/str}}">
+                        {{#pix}}i/warning, core{{/pix}}<span class="local-doublemark-sr">{{#str}}gradedoutside, local_doublemark{{/str}}</span>
+                    </span>
+                    {{/gradedoutside}}
+                </th>
+                <td>
+                    <span class="local-doublemark-marker">{{marker1}}</span>
+                    {{#mark1}}<span class="local-doublemark-mark">{{mark1}}</span>{{/mark1}}
+                    {{^mark1}}{{#marker1}}<span class="local-doublemark-pending">{{#str}}notyet, local_doublemark{{/str}}</span>{{/marker1}}{{/mark1}}
+                </td>
+                <td>
+                    <span class="local-doublemark-marker">{{marker2}}</span>
+                    {{#mark2}}<span class="local-doublemark-mark">{{mark2}}</span>{{/mark2}}
+                    {{^mark2}}{{#marker2}}<span class="local-doublemark-pending">{{#str}}notyet, local_doublemark{{/str}}</span>{{/marker2}}{{/mark2}}
+                </td>
+                <td class="text-end local-doublemark-gap{{#wide}} is-wide{{/wide}}">{{gap}}</td>
+                <td class="text-end local-doublemark-agreed">{{agreed}}</td>
+                <td><span class="{{badge}}">{{statuslabel}}</span></td>
+                <td class="text-end">
+                    {{#canagree}}
+                    {{#needsyou}}<a href="{{agreeurl}}" class="btn btn-sm btn-primary">{{#str}}decide, local_doublemark{{/str}}<span class="local-doublemark-sr"> {{name}}</span></a>{{/needsyou}}
+                    {{^needsyou}}<a href="{{agreeurl}}" class="btn btn-sm btn-outline-secondary">{{#str}}review, local_doublemark{{/str}}<span class="local-doublemark-sr"> {{name}}</span></a>{{/needsyou}}
+                    {{/canagree}}
+                </td>
+            </tr>
+            {{/rows}}
+        </tbody>
+    </table>
+    {{/hasrows}}
+    {{^hasrows}}
+    <p class="alert alert-info">{{emptymessage}}</p>
+    {{/hasrows}}
+</div>

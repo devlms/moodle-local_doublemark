@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_doublemark/marker_list
+
+    A marker's students. The other marker's mark shows only once both are in.
+
+    Context variables required for this template:
+    * rows - list of {userid, name, picture, role, own, other, statuslabel, badge, locked, markurl}
+    * hasrows, todo, summary, maxgrade
+
+    Example context (json):
+    {
+        "rows": [{"userid": 6, "name": "Kai Tanaka", "picture": "", "role": "Second marker", "own": "", "other": "",
+            "statuslabel": "To mark", "badge": "badge bg-warning text-dark", "locked": false, "markurl": "#"}],
+        "hasrows": true, "todo": 1, "summary": "1 left to mark", "maxgrade": "100"
+    }
+}}
+<div class="local-doublemark" data-region="marker-list">
+    {{#hasrows}}
+    <p class="local-doublemark-summary">{{summary}}</p>
+    <table class="table generaltable local-doublemark-table">
+        <thead>
+            <tr>
+                <th scope="col">{{#str}}student, local_doublemark{{/str}}</th>
+                <th scope="col">{{#str}}youare, local_doublemark{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}yourmarkshort, local_doublemark{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}othermark, local_doublemark{{/str}}</th>
+                <th scope="col">{{#str}}status, local_doublemark{{/str}}</th>
+                <th scope="col"><span class="local-doublemark-sr">{{#str}}actions, local_doublemark{{/str}}</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#rows}}
+            <tr data-userid="{{userid}}">
+                <th scope="row" class="local-doublemark-student">
+                    {{#picture}}<span aria-hidden="true">{{{picture}}}</span>{{/picture}}
+                    <span>{{name}}</span>
+                </th>
+                <td>{{role}}</td>
+                <td class="text-end">{{#own}}<span class="local-doublemark-mark">{{own}}</span>{{/own}}</td>
+                <td class="text-end">
+                    {{#other}}<span class="local-doublemark-mark">{{other}}</span>{{/other}}
+                    {{^other}}<span class="local-doublemark-pending">{{#str}}hiddenmark, local_doublemark{{/str}}</span>{{/other}}
+                </td>
+                <td><span class="{{badge}}">{{statuslabel}}</span></td>
+                <td class="text-end">
+                    {{^locked}}
+                    {{#own}}<a href="{{markurl}}" class="btn btn-sm btn-outline-secondary">{{#str}}changemark, local_doublemark{{/str}}<span class="local-doublemark-sr"> {{name}}</span></a>{{/own}}
+                    {{^own}}<a href="{{markurl}}" class="btn btn-sm btn-primary">{{#str}}markthis, local_doublemark{{/str}}<span class="local-doublemark-sr"> {{name}}</span></a>{{/own}}
+                    {{/locked}}
+                    {{#locked}}<a href="{{markurl}}" class="btn btn-sm btn-link">{{#str}}view, local_doublemark{{/str}}<span class="local-doublemark-sr"> {{name}}</span></a>{{/locked}}
+                </td>
+            </tr>
+            {{/rows}}
+        </tbody>
+    </table>
+    {{/hasrows}}
+    {{^hasrows}}
+    <p class="alert alert-info">{{#str}}mine:none, local_doublemark{{/str}}</p>
+    {{/hasrows}}
+</div>

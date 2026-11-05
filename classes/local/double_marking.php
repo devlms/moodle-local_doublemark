@@ -296,8 +296,13 @@ class double_marking {
         if (!$position) {
             throw new moodle_exception('error:notallocated', 'local_doublemark');
         }
-        if ($DB->record_exists_select('local_doublemark_agreed', 'cmid = ? AND userid = ? AND timereleased > 0',
-                [$this->cmid, $userid])) {
+        if (
+            $DB->record_exists_select(
+                'local_doublemark_agreed',
+                'cmid = ? AND userid = ? AND timereleased > 0',
+                [$this->cmid, $userid]
+            )
+        ) {
             throw new moodle_exception('error:released', 'local_doublemark');
         }
         if ($grade < 0 || $grade > $this->max_grade()) {
@@ -424,8 +429,12 @@ class double_marking {
             $marks[$m->userid][(int) $m->position] = (object) ['grade' => (float) $m->grade, 'comment' => (string) $m->comment,
                 'markerid' => (int) $m->markerid, 'timemodified' => (int) $m->timemodified];
         }
-        $graded = $DB->get_fieldset_select('assign_grades', 'DISTINCT userid', 'assignment = ? AND grade >= 0',
-            [$this->assign->get_instance()->id]);
+        $graded = $DB->get_fieldset_select(
+            'assign_grades',
+            'DISTINCT userid',
+            'assignment = ? AND grade >= 0',
+            [$this->assign->get_instance()->id]
+        );
         $graded = array_flip(array_map('intval', $graded));
         $anonymous = $this->assign->is_blind_marking();
 

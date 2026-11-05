@@ -59,7 +59,11 @@ final class double_marking_test extends \advanced_testcase {
      * @param string $rule
      * @return double_marking
      */
-    private function setup_assignment(array $settings = [], float $tolerance = 5, string $rule = reconciler::AVERAGE): double_marking {
+    private function setup_assignment(
+        array $settings = [],
+        float $tolerance = 5,
+        string $rule = reconciler::AVERAGE
+    ): double_marking {
         $assign = $this->getDataGenerator()->create_module('assign', ['course' => $this->course->id, 'grade' => 100,
             'assignfeedback_comments_enabled' => 1] + $settings);
         $this->setUser($this->lead);
@@ -270,11 +274,16 @@ final class double_marking_test extends \advanced_testcase {
 
         $this->setUser($this->lead);
         $dm->agree((int) $this->s1->id, 62, '', 'Clear and well sourced.');
-        // s2 needs reconciliation, so only s1 goes.
+        // The second student needs reconciliation, so only the first goes.
         $this->assertSame(1, $dm->release());
 
-        $grades = grade_get_grades($this->course->id, 'mod', 'assign', $dm->assign()->get_instance()->id,
-            [(int) $this->s1->id, (int) $this->s2->id]);
+        $grades = grade_get_grades(
+            $this->course->id,
+            'mod',
+            'assign',
+            $dm->assign()->get_instance()->id,
+            [(int) $this->s1->id, (int) $this->s2->id]
+        );
         $items = $grades->items[0]->grades;
         $this->assertEquals(62, $items[$this->s1->id]->grade);
         $this->assertNull($items[$this->s2->id]->grade);

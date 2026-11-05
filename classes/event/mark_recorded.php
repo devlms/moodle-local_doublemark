@@ -47,7 +47,9 @@ class mark_recorded extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '{$this->userid}' recorded mark {$this->other['position']} for the user with id '{$this->relateduserid}' in the assignment with course module id '{$this->contextinstanceid}'.";
+        return "The user with id '{$this->userid}' recorded mark {$this->other['position']}"
+            . " for the user with id '{$this->relateduserid}'"
+            . " in the assignment with course module id '{$this->contextinstanceid}'.";
     }
 
     /**

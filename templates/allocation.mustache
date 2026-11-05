@@ -1,0 +1,103 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_doublemark/allocation
+
+    Choose two markers per student, or share the students without markers out evenly.
+
+    Context variables required for this template:
+    * rows - list of {userid, name, label1, label2, picture, options1: [{id, name, selected}], options2, missing, locked}
+    * hasrows, unallocated, markers: [{id, name}], enoughmarkers, cmid, sesskey, actionurl
+
+    Example context (json):
+    {
+        "rows": [{"userid": 6, "name": "Kai Tanaka", "label1": "First marker for Kai Tanaka", "label2": "Second marker for Kai Tanaka", "picture": "", "missing": true, "locked": false,
+            "options1": [{"id": 3, "name": "Dana Lee", "selected": false}], "options2": [{"id": 3, "name": "Dana Lee", "selected": false}]}],
+        "hasrows": true, "unallocated": 1, "markers": [{"id": 3, "name": "Dana Lee"}], "enoughmarkers": true,
+        "cmid": 7, "sesskey": "x", "actionurl": "#"
+    }
+}}
+<div class="local-doublemark" data-region="allocation">
+    {{^enoughmarkers}}
+    <p class="alert alert-warning">{{#str}}needmarkers, local_doublemark{{/str}}</p>
+    {{/enoughmarkers}}
+    {{#enoughmarkers}}
+    {{#unallocated}}
+    <form method="post" action="{{actionurl}}" class="local-doublemark-shareout">
+        <input type="hidden" name="cmid" value="{{cmid}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="shareout">
+        <input type="hidden" name="tab" value="markers">
+        <fieldset>
+            <legend>{{#str}}shareout, local_doublemark{{/str}}</legend>
+            <p>{{#str}}shareout_help, local_doublemark{{/str}}</p>
+            <div class="local-doublemark-checks">
+                {{#markers}}
+                <label class="local-doublemark-check">
+                    <input type="checkbox" name="markers[]" value="{{id}}" checked> {{name}}
+                </label>
+                {{/markers}}
+            </div>
+            <button type="submit" class="btn btn-primary">{{#str}}shareoutbutton, local_doublemark{{/str}}</button>
+        </fieldset>
+    </form>
+    {{/unallocated}}
+    {{/enoughmarkers}}
+    {{#hasrows}}
+    <form method="post" action="{{actionurl}}">
+        <input type="hidden" name="cmid" value="{{cmid}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="allocate">
+        <input type="hidden" name="tab" value="markers">
+        <table class="table generaltable local-doublemark-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{#str}}student, local_doublemark{{/str}}</th>
+                    <th scope="col">{{#str}}firstmarker, local_doublemark{{/str}}</th>
+                    <th scope="col">{{#str}}secondmarker, local_doublemark{{/str}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#rows}}
+                <tr data-userid="{{userid}}">
+                    <th scope="row" class="local-doublemark-student">
+                        {{#picture}}<span aria-hidden="true">{{{picture}}}</span>{{/picture}}
+                        <span id="local-doublemark-student-{{userid}}">{{name}}</span>
+                    </th>
+                    <td>
+                        <select name="marker1[{{userid}}]" class="custom-select form-select" {{#locked}}disabled{{/locked}}
+                                aria-label="{{label1}}">
+                            <option value="0">{{#str}}choose, local_doublemark{{/str}}</option>
+                            {{#options1}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options1}}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="marker2[{{userid}}]" class="custom-select form-select" {{#locked}}disabled{{/locked}}
+                                aria-label="{{label2}}">
+                            <option value="0">{{#str}}choose, local_doublemark{{/str}}</option>
+                            {{#options2}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options2}}
+                        </select>
+                    </td>
+                </tr>
+                {{/rows}}
+            </tbody>
+        </table>
+        <p class="local-doublemark-pending">{{#str}}lockedhelp, local_doublemark{{/str}}</p>
+        <button type="submit" class="btn btn-primary">{{#str}}savemarkers, local_doublemark{{/str}}</button>
+    </form>
+    {{/hasrows}}
+</div>

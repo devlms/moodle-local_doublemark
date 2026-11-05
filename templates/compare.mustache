@@ -1,0 +1,48 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_doublemark/compare
+
+    The two independent marks side by side, with each marker's comment.
+
+    Context variables required for this template:
+    * cards - list of {title, marker, mark, comment, when}
+    * gap, hasgap
+
+    Example context (json):
+    {
+        "cards": [
+            {"title": "First marker", "marker": "Priya Shah", "mark": "52", "comment": "The data plan has gaps.", "when": "3/11/26, 10:00"},
+            {"title": "Second marker", "marker": "Tom Becker", "mark": "74", "comment": "", "when": "4/11/26, 16:20"}
+        ],
+        "gap": "22", "hasgap": true
+    }
+}}
+<div class="local-doublemark-compare">
+    {{#cards}}
+    <section class="local-doublemark-card" aria-label="{{title}}">
+        <p class="local-doublemark-card-title">{{title}}</p>
+        <p class="local-doublemark-card-marker">{{marker}}</p>
+        <p class="local-doublemark-card-mark">{{#mark}}{{mark}}{{/mark}}{{^mark}}<span class="local-doublemark-pending">{{#str}}notyet, local_doublemark{{/str}}</span>{{/mark}}</p>
+        {{#comment}}<p class="local-doublemark-card-comment">{{comment}}</p>{{/comment}}
+        {{#when}}<p class="local-doublemark-pending">{{when}}</p>{{/when}}
+    </section>
+    {{/cards}}
+    {{#hasgap}}
+    <p class="local-doublemark-compare-gap">{{#str}}gap, local_doublemark{{/str}} <strong>{{gap}}</strong></p>
+    {{/hasgap}}
+</div>
