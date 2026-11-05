@@ -335,7 +335,7 @@ class double_marking {
      * @param string $feedback For the student, sent with the grade.
      */
     public function agree(int $userid, float $grade, string $note, string $feedback): void {
-        global $DB, $USER;
+        global $USER;
         require_capability('local/doublemark:manage', $this->assign->get_context());
         $row = $this->rows()[$userid] ?? null;
         if (!$row || !in_array($row->status, [reconciler::AGREED, reconciler::RECONCILE, self::RESOLVED], true)) {

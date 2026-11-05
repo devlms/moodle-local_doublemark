@@ -79,14 +79,14 @@
                         <span id="local-doublemark-student-{{userid}}">{{name}}</span>
                     </th>
                     <td>
-                        <select name="marker1[{{userid}}]" class="custom-select form-select" {{#locked}}disabled{{/locked}}
+                        <select name="marker1[{{userid}}]" class="local-doublemark-select" {{#locked}}disabled{{/locked}}
                                 aria-label="{{label1}}">
                             <option value="0">{{#str}}choose, local_doublemark{{/str}}</option>
                             {{#options1}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options1}}
                         </select>
                     </td>
                     <td>
-                        <select name="marker2[{{userid}}]" class="custom-select form-select" {{#locked}}disabled{{/locked}}
+                        <select name="marker2[{{userid}}]" class="local-doublemark-select" {{#locked}}disabled{{/locked}}
                                 aria-label="{{label2}}">
                             <option value="0">{{#str}}choose, local_doublemark{{/str}}</option>
                             {{#options2}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options2}}

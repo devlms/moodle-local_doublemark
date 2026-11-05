@@ -158,6 +158,34 @@
     margin: 0 0 0 .25rem;
 }
 
+/* Marker pickers: styled here because Moodle 4.5 needs .custom-select and 5.x flags it as deprecated. */
+.local-doublemark-select {
+    display: inline-block;
+    min-width: 12rem;
+    max-width: 100%;
+    height: calc(1.5em + .75rem + 2px);
+    padding: .375rem 2.25rem .375rem .75rem;
+    border: 1px solid #8f959e;
+    border-radius: .5rem;
+    background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23495057' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") no-repeat right .75rem center / 12px 10px;
+    color: #1d2125;
+    font-size: .9375rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.local-doublemark-select:focus {
+    border-color: #0f6cbf;
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(15, 108, 191, .35);
+}
+
+.local-doublemark-select:disabled {
+    background-color: #e9ecef;
+    color: #5b6269;
+}
+
 /* Share out. */
 .local-doublemark-shareout {
     margin-bottom: 1.25rem;
