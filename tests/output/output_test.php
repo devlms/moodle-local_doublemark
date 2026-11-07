@@ -19,6 +19,9 @@ namespace local_doublemark\output;
 use local_doublemark\local\double_marking;
 use local_doublemark\local\reconciler;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\output\overview::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\output\marker_list::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\output\allocation::class)]
 /**
  * Tests for the data behind the lead's overview and the marker's list.
  *

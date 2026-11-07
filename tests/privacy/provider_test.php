@@ -24,6 +24,7 @@ use core_privacy\tests\provider_testcase;
 use local_doublemark\local\double_marking;
 use local_doublemark\local\reconciler;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\privacy\provider::class)]
 /**
  * Tests for the privacy provider.
  *

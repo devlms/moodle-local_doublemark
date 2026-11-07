@@ -16,6 +16,7 @@
 
 namespace local_doublemark\local;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\local\reconciler::class)]
 /**
  * Tests for the rule that turns two marks into a status and an agreed mark.
  *

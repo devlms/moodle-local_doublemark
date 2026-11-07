@@ -16,6 +16,7 @@
 
 namespace local_doublemark\local;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_doublemark\local\double_marking::class)]
 /**
  * Tests for double marking on one assignment: setup, allocation, marks, agreement and release.
  *
@@ -342,7 +343,12 @@ final class double_marking_test extends \advanced_testcase {
         $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $this->m2->id);
         $this->setUser($this->m1);
         $dm->record_mark((int) $this->s1->id, 60, '');
-        course_delete_module($dm->cmid);
+        if (method_exists(\core_courseformat\local\cmactions::class, 'delete')) {
+            // Moodle 5.2 and later.
+            \core_courseformat\formatactions::cm($this->course->id)->delete($dm->cmid);
+        } else {
+            course_delete_module($dm->cmid);
+        }
         foreach (['config', 'alloc', 'mark', 'agreed'] as $table) {
             $this->assertFalse($DB->record_exists("local_doublemark_$table", ['cmid' => $dm->cmid]), $table);
         }
