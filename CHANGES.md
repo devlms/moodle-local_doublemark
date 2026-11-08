@@ -1,5 +1,13 @@
 # Changes
 
+## 1.1.0 (2026-11-08)
+
+Redesigned pages, same features.
+
+- The overview shows the four stages in order as one strip, each as wide as its share of students; each stage still filters the table. The stage that waits on the lead is marked.
+- One line says what happens next, with the release button, in place of the coloured box.
+- Students whose marks need the lead come first in the table.
+
 ## 1.0.0 (2026-11-08)
 
 First stable release.
