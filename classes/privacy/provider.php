@@ -62,8 +62,10 @@ class provider implements
         $collection->add_database_table('local_doublemark_mark', [
             'userid' => 'privacy:metadata:mark:userid',
             'markerid' => 'privacy:metadata:mark:markerid',
+            'position' => 'privacy:metadata:mark:position',
             'grade' => 'privacy:metadata:mark:grade',
             'comment' => 'privacy:metadata:mark:comment',
+            'timecreated' => 'privacy:metadata:mark:timecreated',
             'timemodified' => 'privacy:metadata:mark:timemodified',
         ], 'privacy:metadata:mark');
         $collection->add_database_table('local_doublemark_agreed', [
@@ -71,6 +73,9 @@ class provider implements
             'grade' => 'privacy:metadata:agreed:grade',
             'feedback' => 'privacy:metadata:agreed:feedback',
             'note' => 'privacy:metadata:agreed:note',
+            'source' => 'privacy:metadata:agreed:source',
+            'timeagreed' => 'privacy:metadata:agreed:timeagreed',
+            'timereleased' => 'privacy:metadata:agreed:timereleased',
             'agreedby' => 'privacy:metadata:agreed:agreedby',
             'releasedby' => 'privacy:metadata:agreed:releasedby',
         ], 'privacy:metadata:agreed');
@@ -144,7 +149,21 @@ class provider implements
                 'timemodified' => transform::datetime($m->timemodified),
             ], $DB->get_records('local_doublemark_mark', ['cmid' => $cmid, 'markerid' => $userid], 'id')));
             $agreed = $DB->get_record('local_doublemark_agreed', ['cmid' => $cmid, 'userid' => $userid]);
+            $asstudent = $DB->record_exists('local_doublemark_alloc', ['cmid' => $cmid, 'userid' => $userid]);
+            $asmarker = $DB->count_records_select(
+                'local_doublemark_alloc',
+                'cmid = ? AND (marker1 = ? OR marker2 = ?)',
+                [$cmid, $userid, $userid]
+            );
+            $agreedby = $DB->count_records('local_doublemark_agreed', ['cmid' => $cmid, 'agreedby' => $userid]);
+            $releasedby = $DB->count_records('local_doublemark_agreed', ['cmid' => $cmid, 'releasedby' => $userid]);
+            $settings = $DB->record_exists('local_doublemark_config', ['cmid' => $cmid, 'usermodified' => $userid]);
             $data = (object) [
+                'allocatedmarkers' => transform::yesno($asstudent),
+                'studentstomark' => $asmarker,
+                'marksagreed' => $agreedby,
+                'marksreleased' => $releasedby,
+                'changedsettings' => transform::yesno($settings),
                 'marks' => $marks,
                 'marksgiven' => $given,
                 'agreed' => $agreed ? [
@@ -155,7 +174,7 @@ class provider implements
                     'timereleased' => $agreed->timereleased ? transform::datetime($agreed->timereleased) : '',
                 ] : null,
             ];
-            if ($marks || $given || $agreed) {
+            if ($marks || $given || $agreed || $asstudent || $asmarker || $agreedby || $releasedby || $settings) {
                 writer::with_context($context)->export_data([get_string('pluginname', 'local_doublemark')], $data);
             }
         }

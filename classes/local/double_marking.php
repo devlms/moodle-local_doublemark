@@ -44,6 +44,9 @@ class double_marking {
     /** @var \stdClass|null Settings row, null when double marking is off. */
     private ?\stdClass $config;
 
+    /** @var int Students the last release() could not write a grade for (locked, overridden, workflow). */
+    public int $skipped = 0;
+
     /**
      * Use for_cmid().
      *
@@ -132,6 +135,10 @@ class double_marking {
         if (get_grading_manager($this->assign->get_context(), 'mod_assign', 'submissions')->get_active_method()) {
             return 'unavailable:advancedgrading';
         }
+        // Moodle 5.3 has its own multiple marking; the two must not both write grades.
+        if (method_exists($this->assign, 'is_using_multiple_marking') && $this->assign->is_using_multiple_marking()) {
+            return 'unavailable:multiplemarking';
+        }
         return null;
     }
 
@@ -173,7 +180,31 @@ class double_marking {
     }
 
     /**
-     * Remove everything this plugin stored for a course module.
+     * Remove rows whose assignment no longer exists, e.g. after a course was deleted (which removes modules
+     * without a course_module_deleted event).
+     */
+    public static function delete_orphans(): void {
+        global $DB;
+        foreach (['config', 'alloc', 'mark', 'agreed'] as $table) {
+            $DB->delete_records_select(
+                "local_doublemark_$table",
+                'NOT EXISTS (SELECT 1 FROM {course_modules} cm WHERE cm.id = cmid)'
+            );
+        }
+    }
+
+    /**
+     * Whether feedback from the lead can reach students: the assignment's feedback comments are on.
+     *
+     * @return bool
+     */
+    public function feedback_enabled(): bool {
+        $comments = $this->assign->get_feedback_plugin_by_type('comments');
+        return $comments && $comments->is_enabled();
+    }
+
+    /**
+     * Remove double marking data of one assignment.
      *
      * @param int $cmid
      */
@@ -224,8 +255,21 @@ class double_marking {
         }
         $row = (object) ['cmid' => $this->cmid, 'userid' => $userid, 'marker1' => $marker1, 'marker2' => $marker2,
             'timemodified' => time()];
-        if ($id = $DB->get_field('local_doublemark_alloc', 'id', ['cmid' => $this->cmid, 'userid' => $userid])) {
-            $row->id = $id;
+        $existing = $DB->get_record('local_doublemark_alloc', ['cmid' => $this->cmid, 'userid' => $userid]);
+        if ($existing) {
+            // A marker who has already marked stays: someone else would see that mark as their own.
+            $marked = $DB->get_records_menu(
+                'local_doublemark_mark',
+                ['cmid' => $this->cmid, 'userid' => $userid],
+                '',
+                'position, markerid'
+            );
+            foreach ([1 => $marker1, 2 => $marker2] as $position => $marker) {
+                if (isset($marked[$position]) && (int) $existing->{'marker' . $position} !== $marker) {
+                    throw new moodle_exception('error:markerlocked', 'local_doublemark');
+                }
+            }
+            $row->id = $existing->id;
             $DB->update_record('local_doublemark_alloc', $row);
         } else {
             $DB->insert_record('local_doublemark_alloc', $row);
@@ -315,6 +359,14 @@ class double_marking {
         if ($existing) {
             $row->id = $existing->id;
             $DB->update_record('local_doublemark_mark', $row);
+            // The lead decided on the old marks; a changed mark sends the student back for a new decision.
+            if ((float) $existing->grade !== $grade) {
+                $DB->delete_records_select(
+                    'local_doublemark_agreed',
+                    "cmid = ? AND userid = ? AND source = 'lead' AND timereleased = 0",
+                    [$this->cmid, $userid]
+                );
+            }
         } else {
             $row->timecreated = $now;
             $DB->insert_record('local_doublemark_mark', $row);
@@ -378,9 +430,12 @@ class double_marking {
     public function release(): int {
         global $USER;
         require_capability('local/doublemark:manage', $this->assign->get_context());
+        // The assignment refuses grades from someone who cannot grade; check before the first one.
+        require_capability('mod/assign:grade', $this->assign->get_context());
         $instance = $this->assign->get_instance();
-        $comments = $this->assign->get_feedback_plugin_by_type('comments');
+        $comments = $this->feedback_enabled() ? $this->assign->get_feedback_plugin_by_type('comments') : null;
         $count = 0;
+        $this->skipped = 0;
         foreach ($this->rows() as $userid => $row) {
             if (!in_array($row->status, [reconciler::AGREED, self::RESOLVED], true)) {
                 continue;
@@ -393,11 +448,17 @@ class double_marking {
             if ($comments && $comments->is_enabled()) {
                 // The comments plugin reads its editor on every save; keep what is there when there is no new feedback.
                 $grade = $this->assign->get_user_grade($userid, false);
-                $text = $row->feedback !== '' ? format_text($row->feedback, FORMAT_PLAIN)
+                $text = $row->feedback !== '' ? nl2br(s($row->feedback))
                     : ($grade ? (string) $comments->get_editor_text('comments', $grade->id) : '');
                 $data->assignfeedbackcomments_editor = ['text' => $text, 'format' => FORMAT_HTML];
             }
             $this->assign->save_grade($userid, $data);
+            // The assignment skips locked, overridden or workflow-locked grades without saying so: check it landed.
+            $saved = $this->assign->get_user_grade($userid, false);
+            if (!$saved || $saved->grade === null || abs((float) $saved->grade - (float) $row->agreed) > 0.00001) {
+                $this->skipped++;
+                continue;
+            }
             $fields = ['timereleased' => time(), 'releasedby' => (int) $USER->id];
             if ($row->status === reconciler::AGREED) {
                 $fields += ['grade' => $row->agreed, 'source' => 'rule', 'agreedby' => 0, 'timeagreed' => time()];

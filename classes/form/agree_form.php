@@ -23,7 +23,7 @@ require_once($CFG->libdir . '/formslib.php');
 /**
  * The lead's agreed mark, feedback for the student and a note for staff.
  *
- * Custom data: maxgrade (float).
+ * Custom data: maxgrade (float), feedback (bool: the assignment's feedback comments are on).
  *
  * @package    local_doublemark
  * @copyright  2026 DevLMS <contact@devlms.com>
@@ -41,9 +41,20 @@ class agree_form extends \moodleform {
         }
         $mform->addElement('float', 'grade', get_string('agreedmark', 'local_doublemark', $this->_customdata['maxgrade']));
         $mform->addRule('grade', null, 'required', null, 'client');
-        $mform->addElement('textarea', 'feedback', get_string('feedback', 'local_doublemark'), ['rows' => 5]);
-        $mform->setType('feedback', PARAM_TEXT);
-        $mform->addHelpButton('feedback', 'feedback', 'local_doublemark');
+        if ($this->_customdata['feedback'] ?? true) {
+            $mform->addElement('textarea', 'feedback', get_string('feedback', 'local_doublemark'), ['rows' => 5]);
+            $mform->setType('feedback', PARAM_TEXT);
+            $mform->addHelpButton('feedback', 'feedback', 'local_doublemark');
+        } else {
+            $mform->addElement('hidden', 'feedback', '');
+            $mform->setType('feedback', PARAM_TEXT);
+            $mform->addElement(
+                'static',
+                'nofeedback',
+                get_string('feedback', 'local_doublemark'),
+                get_string('feedbackoff', 'local_doublemark')
+            );
+        }
         $mform->addElement('textarea', 'note', get_string('note', 'local_doublemark'), ['rows' => 3]);
         $mform->setType('note', PARAM_TEXT);
         $mform->addHelpButton('note', 'note', 'local_doublemark');

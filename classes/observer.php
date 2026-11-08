@@ -36,4 +36,13 @@ class observer {
             double_marking::delete_for_cmid((int) $event->objectid);
         }
     }
+
+    /**
+     * Remove double marking data left behind when a course's content was deleted.
+     *
+     * @param \core\event\course_content_deleted $event
+     */
+    public static function course_content_deleted(\core\event\course_content_deleted $event): void {
+        double_marking::delete_orphans();
+    }
 }

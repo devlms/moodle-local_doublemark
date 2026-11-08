@@ -50,6 +50,10 @@ if ($action !== '' && confirm_sesskey()) {
     $back = new moodle_url('/local/doublemark/manage.php', ['cmid' => $cmid, 'tab' => $tab]);
     if ($action === 'release') {
         $count = $dm->release();
+        if ($dm->skipped) {
+            redirect($back, get_string('released', 'local_doublemark', $count) . ' ' .
+                get_string('releaseskipped', 'local_doublemark', $dm->skipped), null, \core\output\notification::NOTIFY_WARNING);
+        }
         redirect($back, get_string('released', 'local_doublemark', $count), null, \core\output\notification::NOTIFY_SUCCESS);
     }
     if ($action === 'shareout') {

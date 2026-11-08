@@ -6,11 +6,11 @@
 [![Moodle](https://img.shields.io/badge/Moodle-4.5%20to%205.3-f98012)](https://moodledev.io/general/releases)
 [![PHP](https://img.shields.io/badge/PHP-8.1%20to%208.4-777bb4)](https://www.php.net/supported-versions.php)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
-[![Maturity](https://img.shields.io/badge/maturity-alpha-orange)](version.php)
+[![Maturity](https://img.shields.io/badge/maturity-stable-green)](version.php)
 
 Two markers mark each submission on their own. Neither sees the other's mark until both are in. Close marks agree by a rule you choose, marks that differ go to the module lead, and nothing reaches the student until the lead releases it. It works on the normal Assignment activity, so you keep your submissions, deadlines and extensions.
 
-Universities that double mark coursework mostly do it in a spreadsheet next to Moodle. Moodle's own multi-marker work is [paused waiting for funding](https://www.catalyst-eu.net/blog/2025/04/29/enhancing-assessment-in-moodle-the-double-marking-project), and the plugins that do it either replace Assignment with a different activity or let the first grader see everything. This plugin keeps the two marks apart and the agreement on record.
+Universities that double mark coursework mostly do it in a spreadsheet next to Moodle. Moodle 5.3 added its own multiple marking to Assignment, but earlier versions have none, and the plugins that do it either replace Assignment with a different activity or let the first grader see everything. This plugin keeps the two marks apart and the agreement on record, on every Moodle from 4.5 to 5.3. An assignment that already uses Moodle 5.3's multiple marking cannot also use this plugin.
 
 ![The lead's overview: both marks per student, the gap, which ones need a decision and the release button](docs/screenshots/overview.png)
 

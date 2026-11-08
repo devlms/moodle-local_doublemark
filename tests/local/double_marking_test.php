@@ -337,6 +337,73 @@ final class double_marking_test extends \advanced_testcase {
         $this->assertFalse(double_marking::for_cmid($dm->cmid)->is_enabled());
     }
 
+    public function test_release_skips_grades_the_assignment_will_not_take(): void {
+        global $CFG;
+        require_once($CFG->libdir . '/gradelib.php');
+        $dm = $this->setup_assignment();
+        $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $this->m2->id);
+        $this->setUser($this->m1);
+        $dm->record_mark((int) $this->s1->id, 60, '');
+        $this->setUser($this->m2);
+        $dm->record_mark((int) $this->s1->id, 62, '');
+        $item = \grade_item::fetch(['itemtype' => 'mod', 'itemmodule' => 'assign',
+            'iteminstance' => $dm->assign()->get_instance()->id, 'courseid' => $this->course->id]);
+        $item->set_locked(true);
+
+        $this->setUser($this->lead);
+        $this->assertSame(0, $dm->release());
+        $this->assertSame(1, $dm->skipped);
+        $this->assertSame(reconciler::AGREED, $dm->rows()[$this->s1->id]->status, 'Not marked released.');
+
+        $item->set_locked(false);
+        $this->assertSame(1, $dm->release());
+        $this->assertSame(0, $dm->skipped);
+    }
+
+    public function test_a_marker_who_has_marked_cannot_be_replaced(): void {
+        $other = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
+        $dm = $this->setup_assignment();
+        $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $this->m2->id);
+        $this->setUser($this->m1);
+        $dm->record_mark((int) $this->s1->id, 60, '');
+        $this->setUser($this->lead);
+        // The second marker has not marked yet, so they can change.
+        $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $other->id);
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('error:markerlocked', 'local_doublemark'));
+        $dm->allocate((int) $this->s1->id, (int) $this->m2->id, (int) $other->id);
+    }
+
+    public function test_changing_a_mark_after_the_lead_decided_asks_the_lead_again(): void {
+        $dm = $this->setup_assignment();
+        $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $this->m2->id);
+        $this->setUser($this->m1);
+        $dm->record_mark((int) $this->s1->id, 40, '');
+        $this->setUser($this->m2);
+        $dm->record_mark((int) $this->s1->id, 70, '');
+        $this->setUser($this->lead);
+        $dm->agree((int) $this->s1->id, 55, '', '');
+        $this->assertSame(double_marking::RESOLVED, $dm->rows()[$this->s1->id]->status);
+        $this->setUser($this->m1);
+        $dm->record_mark((int) $this->s1->id, 40, 'Same mark, new comment.');
+        $this->assertSame(double_marking::RESOLVED, $dm->rows()[$this->s1->id]->status, 'An unchanged mark keeps the decision.');
+        $dm->record_mark((int) $this->s1->id, 45, '');
+        $this->assertSame(reconciler::RECONCILE, $dm->rows()[$this->s1->id]->status);
+    }
+
+    public function test_deleting_the_course_removes_its_data(): void {
+        global $DB;
+        $dm = $this->setup_assignment();
+        $dm->allocate((int) $this->s1->id, (int) $this->m1->id, (int) $this->m2->id);
+        $this->setUser($this->m1);
+        $dm->record_mark((int) $this->s1->id, 60, '');
+        $this->setAdminUser();
+        delete_course($this->course->id, false);
+        foreach (['config', 'alloc', 'mark', 'agreed'] as $table) {
+            $this->assertFalse($DB->record_exists("local_doublemark_$table", ['cmid' => $dm->cmid]), $table);
+        }
+    }
+
     public function test_deleting_the_assignment_removes_its_data(): void {
         global $DB;
         $dm = $this->setup_assignment();

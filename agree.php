@@ -51,7 +51,7 @@ $PAGE->navbar->add($row->name);
 
 $form = new \local_doublemark\form\agree_form(
     $PAGE->url,
-    ['maxgrade' => display::grade($dm->max_grade())],
+    ['maxgrade' => display::grade($dm->max_grade()), 'feedback' => $dm->feedback_enabled()],
     'post',
     '',
     ['class' => 'full-width-labels']
