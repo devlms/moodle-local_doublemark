@@ -118,6 +118,20 @@ final class output_test extends \advanced_testcase {
         $this->assertTrue($data['canrelease']);
     }
 
+    public function test_overview_puts_who_needs_the_lead_first_and_says_what_is_next(): void {
+        $data = $this->export(new overview($this->dm, 'all'));
+        // Ben's marks differ, Ann agrees, Cat and Dan are still being marked.
+        $this->assertSame('Ben Student', $data['rows'][0]['name']);
+        $this->assertSame('Ann Student', $data['rows'][1]['name']);
+        $stages = array_column($data['tiles'], null, 'name');
+        $this->assertSame(['marking', 'reconcile', 'ready', 'released'], array_keys($stages));
+        $this->assertSame(2, $stages['marking']['share']);
+        $this->assertTrue($stages['reconcile']['needsyou']);
+        $this->assertFalse($stages['ready']['needsyou']);
+        // Something is ready, so the next step is releasing it.
+        $this->assertSame(get_string('releasehelp', 'local_doublemark'), $data['next']);
+    }
+
     public function test_overview_filters(): void {
         $data = $this->export(new overview($this->dm, 'reconcile'));
         $this->assertSame(['Ben Student'], array_column($data['rows'], 'name'));

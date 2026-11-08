@@ -23,83 +23,103 @@
     font-size: .875rem;
 }
 
-/* Count tiles that filter the table. */
-.local-doublemark-tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: .75rem;
-    margin: 0 0 1rem;
+/* Stage strip: the four stages in order, each as wide as its share of students. Each stage filters the table. */
+.local-doublemark-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 1.25rem 0 .25rem;
     padding: 0;
     list-style: none;
 }
 
-.local-doublemark-tile {
-    display: flex;
-    flex-direction: column;
-    padding: .75rem 1rem;
-    border: 1px solid #dee2e6;
-    border-top: 4px solid #8f959e;
-    border-radius: .5rem;
-    background: #fff;
+.local-doublemark-stages > li {
+    flex: var(--local-doublemark-share, 0) 1 0;
+    min-width: 8.5rem;
+}
+
+.local-doublemark-stage {
+    display: block;
+    padding: .55rem .25rem .25rem;
+    border-top: 8px solid #ced4da;
     color: #1d2125;
     text-decoration: none;
 }
 
-.local-doublemark-tile:hover,
-.local-doublemark-tile:focus {
-    background: #f8f9fa;
+.local-doublemark-stage:hover,
+.local-doublemark-stage:focus {
     color: #1d2125;
     text-decoration: none;
 }
 
-.local-doublemark-tile.is-active {
-    box-shadow: 0 0 0 3px rgba(15, 108, 191, .35);
+.local-doublemark-stage:hover .local-doublemark-stage-label,
+.local-doublemark-stage:focus .local-doublemark-stage-label {
+    text-decoration: underline;
 }
 
-.local-doublemark-tile.is-marking {
-    border-top-color: #6a737b;
+.local-doublemark-stage.is-empty {
+    border-top-style: dotted;
+    border-top-width: 4px;
+    padding-top: .75rem;
+    color: #6a737b;
 }
 
-.local-doublemark-tile.is-reconcile {
-    border-top-color: #f0ad4e;
+.local-doublemark-stage.is-marking:not(.is-empty) {
+    border-top-color: #8f959e;
 }
 
-.local-doublemark-tile.is-ready {
-    border-top-color: #357a32;
+.local-doublemark-stage.is-reconcile:not(.is-empty) {
+    border-top-color: #e8a33d;
 }
 
-.local-doublemark-tile.is-released {
+.local-doublemark-stage.is-ready:not(.is-empty) {
+    border-top-color: #4e9a4a;
+}
+
+.local-doublemark-stage.is-released:not(.is-empty) {
     border-top-color: #1d2125;
 }
 
-.local-doublemark-tile-count {
-    font-size: 1.75rem;
+.local-doublemark-stage.is-active {
+    outline: 2px solid #0f6cbf;
+    outline-offset: 2px;
+}
+
+.local-doublemark-stage-count {
+    margin-right: .35rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
 }
 
-.local-doublemark-tile-label {
-    color: #495057;
-    font-size: .9rem;
+.local-doublemark-stage-label {
+    font-size: .95rem;
 }
 
-/* Release bar. */
-.local-doublemark-release {
+.local-doublemark-stage-note {
+    display: block;
+    color: #8a5a00;
+    font-size: .8125rem;
+    font-weight: 600;
+}
+
+/* What happens next, said once under the strip, with the one action that moves it on. */
+.local-doublemark-next {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: .75rem 1.5rem;
-    margin-bottom: 1rem;
-    padding: .75rem 1rem;
-    border: 1px solid #b8dab6;
-    border-radius: .5rem;
-    background: #f0f8ef;
+    gap: .5rem 1.5rem;
+    margin: .75rem 0 1.25rem;
+    padding: .75rem 0;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
 }
 
-.local-doublemark-release p {
-    max-width: 40rem;
+.local-doublemark-next p {
+    max-width: 44rem;
     margin: 0;
+    color: #343a40;
 }
 
 /* Tables. */

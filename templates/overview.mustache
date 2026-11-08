@@ -17,22 +17,22 @@
 {{!
     @template local_doublemark/overview
 
-    The lead's view: counts per stage, the release button and every student with both marks.
+    The lead's view: the stages in order as a strip that filters the table, what happens next, and every student, those who need the lead first.
 
     Context variables required for this template:
-    * tiles - list of {name, label, count, url, active}
+    * tiles - list of {name, label, count, share, needsyou, url, active}, the stages in order
     * rows - list of {userid, name, picture, marker1, marker2, mark1, mark2, gap, wide, agreed, status, statuslabel, badge,
       needsyou, canagree, agreeurl, gradedoutside}
-    * hasrows, emptymessage, rulesummary, releasecount, canrelease, releaselabel, releaseurl, cmid, sesskey
+    * hasrows, emptymessage, rulesummary, next, releasecount, canrelease, releaselabel, releaseurl, cmid, sesskey
 
     Example context (json):
     {
-        "tiles": [{"name": "reconcile", "label": "Marks differ", "count": 1, "url": "#", "active": false}],
+        "tiles": [{"name": "reconcile", "label": "Marks differ", "count": 1, "share": 1, "needsyou": true, "url": "#", "active": false}],
         "rows": [{"userid": 5, "name": "Ines Moreau", "picture": "", "marker1": "Priya Shah", "marker2": "Tom Becker",
             "mark1": "52", "mark2": "74", "gap": "22", "wide": true, "agreed": "", "status": "reconcile",
             "statuslabel": "Marks differ", "badge": "badge bg-warning text-dark", "needsyou": true, "canagree": true,
             "agreeurl": "#", "gradedoutside": false}],
-        "hasrows": true, "emptymessage": "", "rulesummary": "Marks within 5 points agree on the average of the two marks.",
+        "hasrows": true, "emptymessage": "", "next": "4 agreed marks are ready to release.", "rulesummary": "Marks within 5 points agree on the average of the two marks.",
         "releasecount": 4, "canrelease": true, "releaselabel": "Release 4 agreed marks to the assignment",
         "releaseurl": "#", "cmid": 7, "sesskey": "x"
     }
@@ -40,27 +40,30 @@
 <div class="local-doublemark" data-region="overview">
     <p class="local-doublemark-rule">{{rulesummary}}</p>
     <nav aria-label="{{#str}}filter, local_doublemark{{/str}}">
-        <ul class="local-doublemark-tiles">
+        <ol class="local-doublemark-stages">
             {{#tiles}}
-            <li>
-                <a href="{{url}}" class="local-doublemark-tile is-{{name}}{{#active}} is-active{{/active}}"
+            <li style="--local-doublemark-share: {{share}}">
+                <a href="{{url}}" class="local-doublemark-stage is-{{name}}{{^count}} is-empty{{/count}}{{#active}} is-active{{/active}}"
                    {{#active}}aria-current="true"{{/active}} data-group="{{name}}">
-                    <span class="local-doublemark-tile-count">{{count}}</span>
-                    <span class="local-doublemark-tile-label">{{label}}</span>
+                    <span class="local-doublemark-stage-count">{{count}}</span>
+                    <span class="local-doublemark-stage-label">{{label}}</span>
+                    {{#needsyou}}<span class="local-doublemark-stage-note">{{#str}}stage:needsyou, local_doublemark{{/str}}</span>{{/needsyou}}
                 </a>
             </li>
             {{/tiles}}
-        </ul>
+        </ol>
     </nav>
-    {{#canrelease}}
-    <form method="post" action="{{releaseurl}}" class="local-doublemark-release">
-        <input type="hidden" name="cmid" value="{{cmid}}">
-        <input type="hidden" name="sesskey" value="{{sesskey}}">
-        <input type="hidden" name="action" value="release">
-        <p>{{#str}}releasehelp, local_doublemark{{/str}}</p>
-        <button type="submit" class="btn btn-primary" data-testid="release">{{releaselabel}}</button>
-    </form>
-    {{/canrelease}}
+    <div class="local-doublemark-next">
+        <p>{{next}}</p>
+        {{#canrelease}}
+        <form method="post" action="{{releaseurl}}" class="local-doublemark-release">
+            <input type="hidden" name="cmid" value="{{cmid}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="release">
+            <button type="submit" class="btn btn-primary" data-testid="release">{{releaselabel}}</button>
+        </form>
+        {{/canrelease}}
+    </div>
     {{#hasrows}}
     <table class="table generaltable local-doublemark-table">
         <thead>

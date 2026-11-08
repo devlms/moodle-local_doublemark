@@ -69,12 +69,19 @@ class overview implements renderable, templatable {
         $url = fn(array $params) => (new \moodle_url('/local/doublemark/manage.php', ['cmid' => $this->dm->cmid] + $params))
             ->out(false);
 
+        $counts = [];
+        foreach (self::GROUPS as $group => $statuses) {
+            $counts[$group] = count(array_filter($rows, fn($r) => in_array($r->status, $statuses, true)));
+        }
         $tiles = [];
         foreach (self::GROUPS as $group => $statuses) {
             $tiles[] = [
                 'name' => $group,
                 'label' => get_string('group:' . $group, 'local_doublemark'),
-                'count' => count(array_filter($rows, fn($r) => in_array($r->status, $statuses, true))),
+                'count' => $counts[$group],
+                // Width of the stage in the strip: its share of all students.
+                'share' => $counts[$group],
+                'needsyou' => $group === 'reconcile' && $counts[$group] > 0,
                 'url' => $url(['filter' => $this->filter === $group ? 'all' : $group]),
                 'active' => $this->filter === $group,
             ];
@@ -82,6 +89,15 @@ class overview implements renderable, templatable {
 
         $shown = $this->filter === 'all' ? $rows
             : array_filter($rows, fn($r) => in_array($r->status, self::GROUPS[$this->filter], true));
+        // Those who need the lead first, then marks ready to release, then marking, then released.
+        $rank = array_flip(array_merge(
+            self::GROUPS['reconcile'],
+            self::GROUPS['ready'],
+            self::GROUPS['marking'],
+            self::GROUPS['released']
+        ));
+        $order = array_flip(array_keys($shown));
+        uksort($shown, fn($a, $b) => [$rank[$shown[$a]->status] ?? 9, $order[$a]] <=> [$rank[$shown[$b]->status] ?? 9, $order[$b]]);
         $list = [];
         foreach ($shown as $row) {
             $agreeurl = new \moodle_url('/local/doublemark/agree.php', ['cmid' => $this->dm->cmid, 'userid' => $row->userid]);
@@ -107,7 +123,14 @@ class overview implements renderable, templatable {
                 'gradedoutside' => $row->gradedoutside,
             ];
         }
-        $releasecount = count(array_filter($rows, fn($r) => in_array($r->status, self::GROUPS['ready'], true)));
+        $releasecount = $counts['ready'];
+        $next = match (true) {
+            !$rows => '',
+            $releasecount > 0 => get_string('releasehelp', 'local_doublemark'),
+            $counts['reconcile'] > 0 => get_string('next:reconcile', 'local_doublemark', $counts['reconcile']),
+            $counts['marking'] > 0 => get_string('next:marking', 'local_doublemark', $counts['marking']),
+            default => get_string('next:done', 'local_doublemark'),
+        };
         return [
             'tiles' => $tiles,
             'rows' => array_values($list),
@@ -118,6 +141,7 @@ class overview implements renderable, templatable {
                 'local_doublemark',
                 display::grade($this->dm->tolerance())
             ),
+            'next' => $next,
             'releasecount' => $releasecount,
             'canrelease' => $releasecount > 0,
             'releaselabel' => get_string('release', 'local_doublemark', $releasecount),
